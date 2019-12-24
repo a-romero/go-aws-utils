@@ -1,6 +1,6 @@
-module github.com/humn-ai/go-aws-utils
+module github.com/a-romero/go-aws-utils
 
-go 1.12
+go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.25.0

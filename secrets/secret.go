@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -81,4 +82,48 @@ func GetSecret(secretName string) (string, error) {
 	}
 
 	return string(secret.Key), nil
+}
+
+func AddSecret(token, name, secret, description string) error {
+	svc := secretsmanager.New(session.New())
+	input := &secretsmanager.CreateSecretInput{
+		ClientRequestToken: aws.String(token),
+		Description:        aws.String(description),
+		Name:               aws.String(name),
+		SecretString:       aws.String(token),
+	}
+
+	_, err := svc.CreateSecret(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case secretsmanager.ErrCodeInvalidParameterException:
+				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+			case secretsmanager.ErrCodeInvalidRequestException:
+				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+			case secretsmanager.ErrCodeLimitExceededException:
+				log.Println(secretsmanager.ErrCodeLimitExceededException, aerr.Error())
+			case secretsmanager.ErrCodeEncryptionFailure:
+				log.Println(secretsmanager.ErrCodeEncryptionFailure, aerr.Error())
+			case secretsmanager.ErrCodeResourceExistsException:
+				log.Println(secretsmanager.ErrCodeResourceExistsException, aerr.Error())
+			case secretsmanager.ErrCodeResourceNotFoundException:
+				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+			case secretsmanager.ErrCodeMalformedPolicyDocumentException:
+				log.Println(secretsmanager.ErrCodeMalformedPolicyDocumentException, aerr.Error())
+			case secretsmanager.ErrCodeInternalServiceError:
+				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+			case secretsmanager.ErrCodePreconditionNotMetException:
+				log.Println(secretsmanager.ErrCodePreconditionNotMetException, aerr.Error())
+			default:
+				log.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			log.Println(err.Error())
+		}
+		return err
+	}
+	return nil
 }
